@@ -1,0 +1,448 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyBook - Flight Reservation System</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f6fb;color:#263348}
+header{background:#103b70;color:white;padding:20px 6%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+header h1{margin:0}
+nav{display:flex;gap:7px;flex-wrap:wrap}
+button{border:0;border-radius:6px;background:#1264a3;color:white;padding:10px 14px;cursor:pointer;font-weight:bold;margin:2px}
+button:hover{opacity:.85}
+nav button{background:#245487}
+.container{max-width:1100px;margin:24px auto;padding:0 15px}
+.card{background:white;padding:22px;border-radius:12px;margin-bottom:20px;box-shadow:0 3px 12px #0000000c}
+h2{color:#103b70;margin-top:0}
+input,select,textarea{width:100%;padding:11px;margin:6px 0 14px;border:1px solid #cbd5e1;border-radius:6px;font:inherit}
+label{font-size:14px;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.hidden{display:none!important}
+.flight{border:1px solid #dce4ee;border-radius:9px;padding:16px;margin:12px 0}
+.flight h3{margin-top:0;color:#103b70}
+.tag{background:#e0f2fe;color:#075985;border-radius:5px;padding:5px 8px;font-size:12px}
+.small{font-size:13px;color:#64748b}
+.good{color:#16803d;font-weight:bold}
+.bad{color:#c62828}
+.seats{display:grid;grid-template-columns:repeat(4,minmax(40px,1fr));gap:8px;margin:12px 0}
+.seat{background:#e2e8f0;color:#334155;padding:12px 5px;text-align:center;border-radius:5px;cursor:pointer}
+.seat.selected{background:#16803d;color:white}
+.seat.taken{background:#cbd5e1;color:#64748b;cursor:not-allowed}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0;font-size:14px}
+th{background:#edf3fa}
+.ticket{border:2px dashed #1264a3;border-radius:10px;padding:20px;background:#fbfdff}
+footer{text-align:center;padding:20px;color:#64748b}
+@media(max-width:650px){header{padding:16px}.grid{grid-template-columns:1fr}.card{padding:15px}nav button{font-size:12px;padding:8px}}
+@media print{header,nav,footer,.no-print{display:none!important}body{background:white}.container{margin:0;max-width:100%}.card{box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+<h1>✈ SkyBook</h1>
+<nav>
+<button onclick="page('home')">Search Flights</button>
+<button onclick="page('status')">Booking Status</button>
+<button onclick="page('mytickets')">My Tickets</button>
+<button onclick="page('feedback')">Feedback</button>
+<button onclick="page('account')">Account</button>
+<button onclick="page('admin')">Admin</button>
+</nav>
+</header>
+
+<div class="container">
+<section id="home" class="section">
+<div class="card">
+<h2>Search Flights</h2>
+<form onsubmit="searchFlights(event)">
+<div class="grid">
+<div><label>From</label><input id="from" placeholder="Chennai" required></div>
+<div><label>Destination</label><input id="to" placeholder="Delhi" required></div>
+<div><label>Departure Date</label><input id="date" type="date" required></div>
+<div><label>Travel Class</label><select id="travelClass"><option>Economy</option><option>Business</option><option>First Class</option></select></div>
+</div>
+<button>Search Flights</button>
+</form>
+<p class="small">Sample flight data for educational demonstration only.</p>
+</div>
+<div id="results"></div>
+</section>
+
+<section id="register" class="section hidden">
+<div class="card">
+<h2>Passenger Registration</h2>
+<form onsubmit="register(event)">
+<label>Full Name</label><input id="regName" required>
+<label>Email</label><input id="regEmail" type="email" required>
+<label>Mobile</label><input id="regMobile" required>
+<label>Password</label><input id="regPass" type="password" minlength="4" required>
+<button>Register</button>
+</form>
+<button onclick="page('login')">Already registered? Login</button>
+</div>
+</section>
+
+<section id="login" class="section hidden">
+<div class="card">
+<h2>Passenger Login</h2>
+<form onsubmit="login(event)">
+<label>Email</label><input id="loginEmail" type="email" required>
+<label>Password</label><input id="loginPass" type="password" required>
+<button>Login</button>
+</form>
+<button onclick="page('register')">Create Account</button>
+<button onclick="page('forgot')">Forgot Password?</button>
+</div>
+</section>
+
+<section id="forgot" class="section hidden">
+<div class="card">
+<h2>Forgot Password</h2>
+<p>Enter your registered email to check the account in this demo.</p>
+<form onsubmit="forgotPassword(event)">
+<label>Email</label><input id="forgotEmail" type="email" required>
+<button>Continue</button>
+</form>
+<div id="forgotResult"></div>
+</div>
+</section>
+
+<section id="booking" class="section hidden">
+<div class="card">
+<h2>Book Flight</h2>
+<div id="flightSummary"></div>
+<h3>Select Seats</h3>
+<p class="small">Grey seats are unavailable. Green seats are selected.</p>
+<div id="seatMap" class="seats"></div>
+<p id="seatInfo">Select one or more seats.</p>
+<form onsubmit="goPayment(event)">
+<h3>Passenger Details</h3>
+<div id="passengerFields"></div>
+<button>Continue to Payment</button>
+</form>
+</div>
+</section>
+
+<section id="payment" class="section hidden">
+<div class="card">
+<h2>Ticket Payment</h2>
+<div id="paymentSummary"></div>
+<form onsubmit="pay(event)">
+<label>Payment Method</label>
+<select id="paymentMethod"><option>UPI (Demo)</option><option>Debit/Credit Card (Demo)</option><option>Offline Counter</option></select>
+<label>Demo transaction reference (optional)</label>
+<input id="transactionRef" placeholder="Enter reference if needed">
+<p class="small">No real money is charged by this prototype.</p>
+<button>Confirm Demo Payment & Generate Ticket</button>
+</form>
+</div>
+</section>
+
+<section id="ticket" class="section hidden">
+<div class="card">
+<h2>Flight E-Ticket</h2>
+<div id="ticketOutput"></div>
+<button class="no-print" onclick="window.print()">Print Ticket</button>
+<button class="no-print" onclick="page('mytickets')">My Tickets</button>
+<button class="no-print" onclick="page('home')">Book Another Flight</button>
+</div>
+</section>
+
+<section id="status" class="section hidden">
+<div class="card">
+<h2>View Booking Status</h2>
+<form onsubmit="checkStatus(event)">
+<label>Enter Booking Reference / PNR</label>
+<input id="statusPNR" required>
+<button>Check Status</button>
+</form>
+<div id="statusResult"></div>
+</div>
+</section>
+
+<section id="mytickets" class="section hidden">
+<div class="card">
+<h2>My Tickets & Booking History</h2>
+<div id="ticketsList"></div>
+</div>
+</section>
+
+<section id="cancel" class="section hidden">
+<div class="card">
+<h2>Cancel Ticket</h2>
+<p id="cancelSummary"></p>
+<p>Demo refund rule: 80% of the ticket fare.</p>
+<button onclick="confirmCancel()">Confirm Cancellation</button>
+<button onclick="page('mytickets')">Go Back</button>
+</div>
+</section>
+
+<section id="feedback" class="section hidden">
+<div class="card">
+<h2>Customer Feedback</h2>
+<form onsubmit="submitFeedback(event)">
+<label>Rating</label>
+<select id="rating"><option value="5">5 - Excellent</option><option value="4">4 - Very Good</option><option value="3">3 - Good</option><option value="2">2 - Fair</option><option value="1">1 - Poor</option></select>
+<label>Your Comments</label><textarea id="comments" rows="4" required></textarea>
+<button>Submit Feedback</button>
+</form>
+<h3>Recent Feedback</h3><div id="feedbackList"></div>
+</div>
+</section>
+
+<section id="account" class="section hidden">
+<div class="card">
+<h2>My Account</h2>
+<div id="accountDetails"></div>
+</div>
+</section>
+
+<section id="admin" class="section hidden">
+<div class="card" id="adminLoginBox">
+<h2>Administrator Login</h2>
+<p class="small">Demo: admin@skybook.com / admin123</p>
+<form onsubmit="adminLogin(event)">
+<label>Email</label><input id="adminEmail" type="email" required>
+<label>Password</label><input id="adminPass" type="password" required>
+<button>Login as Admin</button>
+</form>
+</div>
+<div id="adminPanel" class="hidden">
+<div class="card">
+<h2>Admin Dashboard & Reports</h2>
+<div id="reportStats"></div>
+<button onclick="renderAdmin()">Refresh Report</button>
+<button onclick="adminLogout()">Logout Admin</button>
+</div>
+<div class="card">
+<h2>Add / Edit Flight</h2>
+<form onsubmit="saveFlight(event)">
+<input type="hidden" id="flightId">
+<label>Airline / Flight Name</label><input id="airline" required>
+<label>Flight Number</label><input id="flightNo" required>
+<div class="grid">
+<div><label>Origin</label><input id="adminFrom" required></div>
+<div><label>Destination</label><input id="adminTo" required></div>
+<div><label>Date</label><input id="adminDate" type="date" required></div>
+<div><label>Departure Time</label><input id="departure" type="time" required></div>
+<div><label>Arrival Time</label><input id="arrival" type="time" required></div>
+<div><label>Economy Fare (₹)</label><input id="economyFare" type="number" min="1" required></div>
+<div><label>Business Fare (₹)</label><input id="businessFare" type="number" min="1" required></div>
+<div><label>First Class Fare (₹)</label><input id="firstFare" type="number" min="1" required></div>
+<div><label>Seats per class</label><input id="inventory" type="number" min="0" max="500" required></div>
+</div>
+<button>Save Flight</button>
+<button type="button" onclick="resetFlightForm()">Clear Form</button>
+</form>
+</div>
+<div class="card"><h2>Flight Schedule Management</h2><div id="adminFlights" class="tablewrap"></div></div>
+<div class="card"><h2>Booking & Payment Report</h2><div id="adminBookings" class="tablewrap"></div></div>
+<div class="card"><h2>Registered Customers</h2><div id="adminCustomers" class="tablewrap"></div></div>
+<div class="card"><h2>Customer Feedback Report</h2><div id="adminFeedback"></div></div>
+</div>
+</section>
+</div>
+<footer>SkyBook · Online Flight Reservation System · Internet Programming Lab</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const today=new Date();
+const todayStr=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
+$("date").min=todayStr;$("date").value=todayStr;
+$("adminDate").min=todayStr;$("adminDate").value=todayStr;
+
+function load(k,f){try{let v=JSON.parse(localStorage.getItem(k));return v===null?f:v}catch{return f}}
+function store(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+let users=load("sky_users",[]);
+let flights=load("sky_flights",null);
+let tickets=load("sky_tickets",[]);
+let feedback=load("sky_feedback",[]);
+let current=load("sky_current",null);
+let admin=false,selectedFlight=null,selectedSeats=[],pending=null,cancelPNR=null;
+
+if(!flights){
+flights=[
+{id:1,airline:"IndiGo",number:"6E 205",from:"Chennai",to:"Delhi",date:todayStr,departure:"06:30",arrival:"09:30",fares:{Economy:4500,Business:9000,"First Class":15000},inventory:40},
+{id:2,airline:"Air India",number:"AI 440",from:"Chennai",to:"Mumbai",date:todayStr,departure:"10:00",arrival:"12:00",fares:{Economy:3800,Business:8500,"First Class":14000},inventory:35},
+{id:3,airline:"Akasa Air",number:"QP 132",from:"Bengaluru",to:"Delhi",date:todayStr,departure:"14:00",arrival:"17:00",fares:{Economy:4200,Business:8800,"First Class":14500},inventory:30}
+];
+store("sky_flights",flights);
+}
+function persist(){store("sky_users",users);store("sky_flights",flights);store("sky_tickets",tickets);store("sky_feedback",feedback);store("sky_current",current)}
+function show(id){document.querySelectorAll(".section").forEach(s=>s.classList.add("hidden"));$(id).classList.remove("hidden")}
+function page(id){
+if(["booking","payment","mytickets","account","cancel"].includes(id)&&!current){alert("Please log in first.");show("login");return}
+if(id==="mytickets")renderTickets();
+if(id==="account")renderAccount();
+if(id==="feedback")renderFeedback();
+if(id==="admin"){ $("adminLoginBox").classList.toggle("hidden",admin);$("adminPanel").classList.toggle("hidden",!admin);if(admin)renderAdmin()}
+show(id)
+}
+function register(e){
+e.preventDefault();
+let email=$("regEmail").value.trim().toLowerCase();
+if(users.some(u=>u.email===email)){alert("This email is already registered.");return}
+users.push({name:$("regName").value.trim(),email,mobile:$("regMobile").value.trim(),password:$("regPass").value});
+current=email;persist();alert("Registration successful!");page("home")
+}
+function login(e){
+e.preventDefault();
+let email=$("loginEmail").value.trim().toLowerCase();
+if(!users.some(u=>u.email===email&&u.password===$("loginPass").value)){alert("Invalid email or password.");return}
+current=email;persist();alert("Login successful!");page("home")
+}
+function forgotPassword(e){
+e.preventDefault();
+let u=users.find(x=>x.email===$("forgotEmail").value.trim().toLowerCase());
+$("forgotResult").textContent=u?"Account found. For security, this demo does not reset or reveal passwords. Contact the system administrator.":"No account found for that email."
+}
+function searchFlights(e){
+e.preventDefault();
+let from=$("from").value.trim().toLowerCase(),to=$("to").value.trim().toLowerCase(),date=$("date").value,cls=$("travelClass").value;
+if(from===to){alert("Origin and destination must differ.");return}
+let list=flights.filter(f=>f.from.toLowerCase().includes(from)&&f.to.toLowerCase().includes(to)&&f.date===date);
+$("results").innerHTML='<div class="card"><h2>Available Flights</h2>'+
+(list.length?list.map(f=>{
+let used=tickets.filter(t=>t.flightId===f.id&&t.date===date&&t.classType===cls&&t.status!=="Cancelled").reduce((n,t)=>n+t.seats.length,0);
+return `<div class="flight"><h3>${esc(f.airline)} <span class="tag">${esc(f.number)}</span></h3>
+<p><b>${esc(f.from)}</b> ${esc(f.departure)} → <b>${esc(f.to)}</b> ${esc(f.arrival)}</p>
+<p>Date: ${esc(f.date)} | Class: ${esc(cls)}</p>
+<p>Fare: ₹${f.fares[cls]} per passenger | Available seats: ${Math.max(0,f.inventory-used)}</p>
+<button onclick="chooseFlight(${f.id},'${cls}')">Select Flight</button></div>`
+}).join(""):"<p>No flights found. Try a sample route or add a flight from the admin panel.</p>")+"</div>"
+}
+function chooseFlight(id,cls){
+if(!current){alert("Please log in or register before booking.");show("login");return}
+selectedFlight=flights.find(f=>f.id===id);selectedFlight={...selectedFlight,classType:cls};selectedSeats=[];
+$("flightSummary").innerHTML=`<h3>${esc(selectedFlight.airline)} (${esc(selectedFlight.number)})</h3><p>${esc(selectedFlight.from)} → ${esc(selectedFlight.to)} | ${esc(selectedFlight.date)}</p><p>Class: ${esc(cls)} | ₹${selectedFlight.fares[cls]} per seat</p>`;
+renderSeats();show("booking")
+}
+function renderSeats(){
+let used=tickets.filter(t=>t.flightId===selectedFlight.id&&t.date===selectedFlight.date&&t.classType===selectedFlight.classType&&t.status!=="Cancelled").flatMap(t=>t.seats);
+let count=Math.min(selectedFlight.inventory,40);
+$("seatMap").innerHTML=Array.from({length:count},(_,i)=>{
+let seat="S"+String(i+1).padStart(2,"0"),taken=used.includes(seat);
+return `<div class="seat ${taken?"taken":selectedSeats.includes(seat)?"selected":""}" ${taken?"":`onclick="toggleSeat('${seat}')"`}>${seat}</div>`
+}).join("");
+$("seatInfo").textContent="Selected seats: "+(selectedSeats.join(", ")||"None")+" | Total: ₹"+(selectedSeats.length*selectedFlight.fares[selectedFlight.classType])
+}
+function toggleSeat(seat){
+if(selectedSeats.includes(seat))selectedSeats=selectedSeats.filter(s=>s!==seat);
+else if(selectedSeats.length<6)selectedSeats.push(seat);
+else{alert("Maximum 6 seats per booking.");return}
+renderSeats();renderPassengerFields()
+}
+function renderPassengerFields(){
+$("passengerFields").innerHTML=selectedSeats.map((s,i)=>`<div class="flight"><h3>Seat ${esc(s)}</h3>
+<label>Passenger Name</label><input class="pname" required maxlength="70">
+<div class="grid"><div><label>Age</label><input class="pageage" type="number" min="1" max="120" required></div>
+<div><label>Gender</label><select class="pgender"><option>Male</option><option>Female</option><option>Other</option></select></div></div></div>`).join("");
+}
+function goPayment(e){
+e.preventDefault();
+if(!selectedSeats.length){alert("Please select at least one seat.");return}
+let names=[...document.querySelectorAll(".pname")].map(x=>x.value.trim());
+let ages=[...document.querySelectorAll(".pageage")].map(x=>Number(x.value));
+let genders=[...document.querySelectorAll(".pgender")].map(x=>x.value);
+pending=selectedSeats.map((seat,i)=>({seat,name:names[i],age:ages[i],gender:genders[i]}));
+let used=tickets.filter(t=>t.flightId===selectedFlight.id&&t.date===selectedFlight.date&&t.classType===selectedFlight.classType&&t.status!=="Cancelled").flatMap(t=>t.seats);
+if(selectedSeats.some(s=>used.includes(s))){alert("One or more seats have just become unavailable. Please select again.");selectedSeats=[];renderSeats();return}
+$("paymentSummary").innerHTML=`<p>Flight: ${esc(selectedFlight.airline)} (${esc(selectedFlight.number)})</p><p>Seats: ${selectedSeats.map(esc).join(", ")}</p><h3>Total Amount: ₹${selectedSeats.length*selectedFlight.fares[selectedFlight.classType]}</h3>`;
+show("payment")
+}
+function pay(e){
+e.preventDefault();
+if(!pending||!selectedFlight||!current){alert("Please restart the booking.");return}
+let pnr=String(Date.now()).slice(-10);
+let total=pending.length*selectedFlight.fares[selectedFlight.classType];
+let t={pnr,user:current,flightId:selectedFlight.id,airline:selectedFlight.airline,number:selectedFlight.number,from:selectedFlight.from,to:selectedFlight.to,date:selectedFlight.date,departure:selectedFlight.departure,arrival:selectedFlight.arrival,classType:selectedFlight.classType,seats:pending.map(p=>p.seat),passengers:pending.map(p=>({name:p.name,age:p.age,gender:p.gender,seat:p.seat})),fare:total,paymentMethod:$("paymentMethod").value,paymentStatus:"Demo payment recorded",transactionRef:$("transactionRef").value.trim(),status:"Confirmed",refund:0,created:new Date().toLocaleString()};
+tickets.push(t);persist();pending=null;
+$("ticketOutput").innerHTML=ticketHTML(t);show("ticket");alert("Booking successful! Your demo PNR is "+pnr)
+}
+function ticketHTML(t){
+return `<div class="ticket"><h2>✈ SkyBook E-Ticket</h2><p class="good">Booking Status: ${esc(t.status)}</p><h3>PNR: ${esc(t.pnr)}</h3>
+<p><b>${esc(t.airline)}</b> — ${esc(t.number)}</p><p>${esc(t.from)} (${esc(t.departure)}) → ${esc(t.to)} (${esc(t.arrival)})</p>
+<p>Travel Date: ${esc(t.date)} | Class: ${esc(t.classType)}</p><p>Seats: ${t.seats.map(esc).join(", ")}</p>
+<h3>Passenger Details</h3><ul>${t.passengers.map(p=>`<li>${esc(p.name)}, Age ${p.age}, ${esc(p.gender)}, Seat ${esc(p.seat)}</li>`).join("")}</ul>
+<p>Total Fare: ₹${t.fare}</p><p>Payment: ${esc(t.paymentMethod)} — ${esc(t.paymentStatus)}</p>
+<p class="small">Educational demo ticket only. Not valid for actual air travel.</p></div>`
+}
+function checkStatus(e){
+e.preventDefault();let t=tickets.find(x=>x.pnr===$("statusPNR").value.trim());
+$("statusResult").innerHTML=t?`<div class="flight"><h3>${esc(t.airline)} — ${esc(t.number)}</h3><p>PNR: ${esc(t.pnr)}</p><p>${esc(t.from)} → ${esc(t.to)} | ${esc(t.date)}</p><p>Status: <b>${esc(t.status)}</b></p></div>`:"<p class='bad'>Booking reference not found.</p>"
+}
+function renderTickets(){
+let list=tickets.filter(t=>t.user===current);
+$("ticketsList").innerHTML=list.length?list.slice().reverse().map(t=>`<div class="flight"><h3>${esc(t.airline)} — ${esc(t.number)}</h3><p>PNR: ${esc(t.pnr)} | ${esc(t.date)}</p><p>${esc(t.from)} → ${esc(t.to)} | ₹${t.fare} | ${esc(t.status)}</p>
+<button onclick="viewTicket('${t.pnr}')">View / Print</button>${t.status!=="Cancelled"?`<button onclick="startCancel('${t.pnr}')">Cancel Ticket</button>`:`<p>Estimated refund: ₹${t.refund} (${esc(t.refundStatus||"Pending")})</p>`}</div>`).join(""):"<p>No bookings found.</p>"
+}
+function viewTicket(pnr){let t=tickets.find(x=>x.pnr===pnr&&x.user===current);if(!t)return;$("ticketOutput").innerHTML=ticketHTML(t);show("ticket")}
+function startCancel(pnr){
+cancelPNR=pnr;let t=tickets.find(x=>x.pnr===pnr&&x.user===current);
+if(!t)return;$("cancelSummary").textContent=`Cancel ${t.airline} (${t.number}), PNR ${t.pnr}? Total fare ₹${t.fare}. Estimated demo refund: ₹${Math.round(t.fare*.8)}.`;show("cancel")
+}
+function confirmCancel(){
+let t=tickets.find(x=>x.pnr===cancelPNR&&x.user===current);
+if(!t||t.status==="Cancelled")return;
+if(!confirm("Confirm ticket cancellation?"))return;
+t.status="Cancelled";t.refund=Math.round(t.fare*.8);t.refundStatus="Pending admin processing";persist();
+alert("Ticket cancelled. Estimated refund ₹"+t.refund+". Actual money is not transferred.");page("mytickets")
+}
+function submitFeedback(e){
+e.preventDefault();if(!current){alert("Please log in to submit feedback.");show("login");return}
+feedback.push({user:current,rating:Number($("rating").value),comments:$("comments").value.trim(),date:new Date().toLocaleDateString()});
+persist();$("comments").value="";alert("Feedback submitted!");renderFeedback()
+}
+function renderFeedback(){
+$("feedbackList").innerHTML=feedback.length?feedback.slice().reverse().map(f=>`<div class="flight"><b>${"★".repeat(f.rating)}${"☆".repeat(5-f.rating)}</b><p>${esc(f.comments)}</p><p class="small">${esc(f.date)}</p></div>`).join(""):"<p>No feedback yet.</p>"
+}
+function renderAccount(){
+let u=users.find(x=>x.email===current);if(!u){current=null;persist();show("login");return}
+$("accountDetails").innerHTML=`<form onsubmit="updateAccount(event)"><label>Full Name</label><input id="accountName" value="${esc(u.name)}" required><label>Email</label><input value="${esc(u.email)}" disabled><label>Mobile</label><input id="accountMobile" value="${esc(u.mobile)}" required><button>Update Profile</button></form><button onclick="logout()">Logout</button>`
+}
+function updateAccount(e){e.preventDefault();let u=users.find(x=>x.email===current);u.name=$("accountName").value.trim();u.mobile=$("accountMobile").value.trim();persist();alert("Profile updated.");renderAccount()}
+function logout(){current=null;persist();alert("Logged out.");show("home")}
+function adminLogin(e){
+e.preventDefault();
+if($("adminEmail").value==="admin@skybook.com"&&$("adminPass").value==="admin123"){admin=true;page("admin")}else alert("Invalid admin credentials.")
+}
+function adminLogout(){admin=false;page("home")}
+function resetFlightForm(){$("flightId").value="";$("airline").value="";$("flightNo").value="";$("adminFrom").value="";$("adminTo").value="";$("adminDate").value=todayStr;$("departure").value="";$("arrival").value="";$("economyFare").value="";$("businessFare").value="";$("firstFare").value="";$("inventory").value=""}
+function saveFlight(e){
+e.preventDefault();
+let id=$("flightId").value;
+let f={id:id?Number(id):Date.now(),airline:$("airline").value.trim(),number:$("flightNo").value.trim(),from:$("adminFrom").value.trim(),to:$("adminTo").value.trim(),date:$("adminDate").value,departure:$("departure").value,arrival:$("arrival").value,fares:{Economy:Number($("economyFare").value),Business:Number($("businessFare").value),"First Class":Number($("firstFare").value)},inventory:Number($("inventory").value)};
+if(f.from.toLowerCase()===f.to.toLowerCase()){alert("Origin and destination must differ.");return}
+if(id)flights=flights.map(x=>x.id===Number(id)?f:x);else flights.push(f);
+persist();resetFlightForm();renderAdmin();alert("Flight saved.")
+}
+function editFlight(id){
+let f=flights.find(x=>x.id===id);if(!f)return;
+$("flightId").value=f.id;$("airline").value=f.airline;$("flightNo").value=f.number;$("adminFrom").value=f.from;$("adminTo").value=f.to;$("adminDate").value=f.date;$("departure").value=f.departure;$("arrival").value=f.arrival;$("economyFare").value=f.fares.Economy;$("businessFare").value=f.fares.Business;$("firstFare").value=f.fares["First Class"];$("inventory").value=f.inventory;window.scrollTo({top:0,behavior:"smooth"})
+}
+function deleteFlight(id){
+if(tickets.some(t=>t.flightId===id&&t.status!=="Cancelled")){alert("This flight has active bookings. Cancel those bookings before deleting it.");return}
+if(confirm("Delete this flight?")){flights=flights.filter(f=>f.id!==id);persist();renderAdmin()}
+}
+function renderAdmin(){
+if(!admin)return;
+$("reportStats").innerHTML=`<p>Flights: ${flights.length} | Customers: ${users.length} | Total bookings: ${tickets.length}</p><p>Active bookings: ${tickets.filter(t=>t.status!=="Cancelled").length} | Cancelled: ${tickets.filter(t=>t.status==="Cancelled").length}</p><p>Recorded active fares: ₹${tickets.filter(t=>t.status!=="Cancelled").reduce((n,t)=>n+t.fare,0)}</p>`;
+$("adminFlights").innerHTML=`<table><tr><th>Flight</th><th>Route / Date</th><th>Fare</th><th>Actions</th></tr>`+flights.map(f=>`<tr><td>${esc(f.airline)} (${esc(f.number)})</td><td>${esc(f.from)} → ${esc(f.to)}<br>${esc(f.date)}</td><td>₹${f.fares.Economy} / Economy</td><td><button onclick="editFlight(${f.id})">Edit</button><button onclick="deleteFlight(${f.id})">Delete</button></td></tr>`).join("")+"</table>";
+$("adminBookings").innerHTML=tickets.length?`<table><tr><th>PNR</th><th>Customer</th><th>Flight</th><th>Fare / Payment</th><th>Status / Refund</th><th>Action</th></tr>`+tickets.map(t=>`<tr><td>${esc(t.pnr)}</td><td>${esc(t.user)}</td><td>${esc(t.number)}<br>${esc(t.date)}</td><td>₹${t.fare}<br>${esc(t.paymentMethod)}</td><td>${esc(t.status)}<br>${t.status==="Cancelled"?"₹"+t.refund+" "+esc(t.refundStatus||""):"—"}</td><td>${t.status==="Cancelled"&&t.refundStatus!=="Processed"?`<button onclick="processRefund('${t.pnr}')">Mark Refund Processed</button>`:"—"}</td></tr>`).join("")+"</table>":"<p>No bookings.</p>";
+$("adminCustomers").innerHTML=users.length?`<table><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Bookings</th></tr>`+users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.mobile)}</td><td>${tickets.filter(t=>t.user===u.email).length}</td></tr>`).join("")+"</table>":"<p>No customers.</p>";
+$("adminFeedback").innerHTML=feedback.length?feedback.map(f=>`<div class="flight"><b>${"★".repeat(f.rating)}</b><p>${esc(f.comments)}</p><p class="small">${esc(f.user)} · ${esc(f.date)}</p></div>`).join(""):"<p>No feedback submitted.</p>"
+}
+function processRefund(pnr){
+let t=tickets.find(x=>x.pnr===pnr);
+if(!t||t.status!=="Cancelled")return;
+if(confirm("Mark refund ₹"+t.refund+" as processed? This does not transfer money.")){t.refundStatus="Processed";persist();renderAdmin()}
+}
+</script>
+</body>
+</html>

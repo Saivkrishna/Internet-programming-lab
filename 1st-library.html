@@ -1,0 +1,405 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Library Management System</title>
+
+<style>
+* { box-sizing: border-box; }
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f2f5fa;
+    color: #263238;
+}
+header {
+    background: #173b65;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+nav button {
+    background: white;
+    color: #173b65;
+}
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    background: #1769aa;
+    color: white;
+    cursor: pointer;
+}
+button:hover { opacity: 0.85; }
+main {
+    max-width: 950px;
+    margin: 25px auto;
+    padding: 15px;
+}
+section {
+    background: white;
+    padding: 22px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #0001;
+}
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 7px 0 15px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+th { background: #dcecff; }
+.card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 7px;
+}
+.hidden { display: none; }
+footer {
+    background: #173b65;
+    color: white;
+    text-align: center;
+    padding: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>College Library Management System</h1>
+    <p>Search Books | Manage Borrowing | Study Materials</p>
+    <nav>
+        <button onclick="showPage('home')">Home</button>
+        <button onclick="showPage('books')">Books</button>
+        <button onclick="showPage('login')">Login</button>
+        <button onclick="showPage('register')">Register</button>
+        <button onclick="showPage('history')">My History</button>
+        <button onclick="showPage('admin')">Admin</button>
+        <button onclick="showPage('materials')">Materials</button>
+        <button onclick="showPage('contact')">Contact</button>
+    </nav>
+</header>
+
+<main>
+
+<section id="home">
+    <h2>Welcome to Our Library</h2>
+    <p>Access books, manage borrowing records, check fines,
+    and explore academic study materials.</p>
+    <button onclick="showPage('books')">Explore Books</button>
+    <button onclick="showPage('materials')">Study Materials</button>
+    <h3>Library Services</h3>
+    <ul>
+        <li>Book catalog and search</li>
+        <li>Student registration and login</li>
+        <li>Book issue and return management</li>
+        <li>Fine details and borrowing history</li>
+        <li>Semester-wise study materials</li>
+    </ul>
+</section>
+
+<section id="books" class="hidden">
+    <h2>Book Catalog</h2>
+    <input id="search" placeholder="Search by book title or author"
+           oninput="searchBooks()">
+    <div id="bookList"></div>
+</section>
+
+<section id="details" class="hidden">
+    <h2>Book Details</h2>
+    <div id="bookDetails"></div>
+    <button onclick="showPage('books')">Back to Books</button>
+</section>
+
+<section id="login" class="hidden">
+    <h2>User Login</h2>
+    <form onsubmit="login(event)">
+        <label>Login Type</label>
+        <select id="role">
+            <option>Student</option>
+            <option>Admin</option>
+        </select>
+        <label>Email</label>
+        <input type="email" required>
+        <label>Password</label>
+        <input type="password" required>
+        <button type="submit">Login</button>
+    </form>
+    <p>Demo only: this form does not authenticate real users.</p>
+</section>
+
+<section id="register" class="hidden">
+    <h2>Student Registration</h2>
+    <form onsubmit="register(event)">
+        <label>Full Name</label>
+        <input required>
+        <label>Register Number</label>
+        <input required>
+        <label>Email</label>
+        <input type="email" required>
+        <label>Password</label>
+        <input type="password" minlength="6" required>
+        <button type="submit">Register</button>
+    </form>
+</section>
+
+<section id="history" class="hidden">
+    <h2>My Borrowing History</h2>
+    <table>
+        <tr>
+            <th>Book</th><th>Issue Date</th>
+            <th>Due Date</th><th>Status</th>
+        </tr>
+        <tr>
+            <td>Java Programming</td>
+            <td>01-10-2026</td>
+            <td>15-10-2026</td>
+            <td>Issued</td>
+        </tr>
+        <tr>
+            <td>Web Technology</td>
+            <td>10-09-2026</td>
+            <td>24-09-2026</td>
+            <td>Returned</td>
+        </tr>
+    </table>
+    <h3>Fine Details</h3>
+    <p>Sample overdue fine: ₹20</p>
+</section>
+
+<section id="admin" class="hidden">
+    <h2>Librarian Admin Dashboard</h2>
+    <h3>Add Book</h3>
+    <form onsubmit="addBook(event)">
+        <label>Book Title</label>
+        <input id="title" required>
+        <label>Author</label>
+        <input id="author" required>
+        <label>Publication Year</label>
+        <input id="year" type="number" required>
+        <button type="submit">Add Book</button>
+    </form>
+
+    <h3>Manage Inventory</h3>
+    <table>
+        <thead>
+            <tr><th>Title</th><th>Author</th>
+            <th>Year</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody id="inventory"></tbody>
+    </table>
+
+    <h3>Other Admin Operations</h3>
+    <p>Issue books, record returns, calculate fines,
+    and manage student and material records.</p>
+</section>
+
+<section id="materials" class="hidden">
+    <h2>Study Materials</h2>
+    <label>Academic Year</label>
+    <select id="matYear" onchange="filterMaterials()">
+        <option value="all">All Years</option>
+        <option value="1">First Year</option>
+        <option value="2">Second Year</option>
+        <option value="3">Third Year</option>
+        <option value="4">Fourth Year</option>
+    </select>
+    <label>Semester</label>
+    <select id="matSem" onchange="filterMaterials()">
+        <option value="all">All Semesters</option>
+        <option value="1">Semester 1</option>
+        <option value="2">Semester 2</option>
+    </select>
+    <div id="materialList"></div>
+</section>
+
+<section id="contact" class="hidden">
+    <h2>Contact the Library</h2>
+    <form onsubmit="contactLibrary(event)">
+        <label>Name</label>
+        <input required>
+        <label>Email</label>
+        <input type="email" required>
+        <label>Message</label>
+        <textarea required></textarea>
+        <button type="submit">Submit</button>
+    </form>
+</section>
+
+</main>
+
+<footer>
+    <p>College Library Management System | Internet Programming Lab</p>
+</footer>
+
+<script>
+const books = [
+    {title:"Java Programming", author:"Herbert Schildt",
+     year:2022, status:"Available"},
+    {title:"Web Technology", author:"Uttam K. Roy",
+     year:2021, status:"Available"},
+    {title:"Data Structures", author:"Seymour Lipschutz",
+     year:2020, status:"Issued"}
+];
+
+const materials = [
+    {title:"Programming Fundamentals", year:"1", sem:"1"},
+    {title:"Web Programming Notes", year:"2", sem:"2"},
+    {title:"Data Structures Notes", year:"3", sem:"1"},
+    {title:"Project Reference Material", year:"4", sem:"2"}
+];
+
+function showPage(id) {
+    document.querySelectorAll("main section").forEach(section => {
+        section.classList.add("hidden");
+    });
+    document.getElementById(id).classList.remove("hidden");
+    if (id === "books") renderBooks();
+    if (id === "admin") renderInventory();
+    if (id === "materials") renderMaterials();
+}
+
+function renderBooks() {
+    const list = document.getElementById("bookList");
+    const search = document.getElementById("search").value.toLowerCase();
+
+    list.innerHTML = "";
+    books.forEach((book, index) => {
+        if ((book.title + book.author).toLowerCase().includes(search)) {
+            list.innerHTML += `
+                <div class="card">
+                    <h3>${book.title}</h3>
+                    <p>Author: ${book.author}</p>
+                    <p>Status: ${book.status}</p>
+                    <button onclick="viewBook(${index})">View Details</button>
+                </div>`;
+        }
+    });
+}
+
+function searchBooks() {
+    renderBooks();
+}
+
+function viewBook(index) {
+    const book = books[index];
+    document.getElementById("bookDetails").innerHTML = `
+        <h3>${book.title}</h3>
+        <p>Author: ${book.author}</p>
+        <p>Publication Year: ${book.year}</p>
+        <p>Status: ${book.status}</p>`;
+    showPage("details");
+}
+
+function login(event) {
+    event.preventDefault();
+    alert("Demo login form submitted. No real authentication is performed.");
+}
+
+function register(event) {
+    event.preventDefault();
+    alert("Registration form submitted (demo only).");
+}
+
+function addBook(event) {
+    event.preventDefault();
+    books.push({
+        title: document.getElementById("title").value,
+        author: document.getElementById("author").value,
+        year: document.getElementById("year").value,
+        status: "Available"
+    });
+    event.target.reset();
+    renderInventory();
+    alert("Book added successfully!");
+}
+
+function renderInventory() {
+    document.getElementById("inventory").innerHTML = books.map((book, i) => `
+        <tr>
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.year}</td>
+            <td>${book.status}</td>
+            <td><button onclick="deleteBook(${i})">Delete</button></td>
+        </tr>`).join("");
+}
+
+function deleteBook(index) {
+    if (confirm("Delete this book?")) {
+        books.splice(index, 1);
+        renderInventory();
+    }
+}
+
+function renderMaterials() {
+    const list = document.getElementById("materialList");
+    list.innerHTML = materials.map((m, i) => `
+        <div class="card material"
+             data-year="${m.year}" data-sem="${m.sem}">
+            <h3>${m.title}</h3>
+            <p>Year: ${m.year}, Semester: ${m.sem}</p>
+            <button onclick="downloadMaterial(${i})">Download Sample</button>
+        </div>`).join("");
+    filterMaterials();
+}
+
+function filterMaterials() {
+    const year = document.getElementById("matYear").value;
+    const sem = document.getElementById("matSem").value;
+
+    document.querySelectorAll(".material").forEach(item => {
+        item.style.display =
+            (year === "all" || item.dataset.year === year) &&
+            (sem === "all" || item.dataset.sem === sem)
+                ? "block" : "none";
+    });
+}
+
+function downloadMaterial(index) {
+    const m = materials[index];
+    const content = "Library Study Material\n" + m.title +
+                    "\nYear: " + m.year + "\nSemester: " + m.sem;
+    const blob = new Blob([content], {type:"text/plain"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = m.title.replaceAll(" ", "_") + ".txt";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function contactLibrary(event) {
+    event.preventDefault();
+    alert("Contact form submitted (demo only).");
+}
+
+renderBooks();
+showPage("home");
+</script>
+
+</body>
+</html>

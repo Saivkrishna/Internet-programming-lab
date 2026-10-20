@@ -1,0 +1,682 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Hotel Booking System</title>
+
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f6fa;
+    color: #263238;
+}
+header {
+    background: #173b65;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+}
+button {
+    background: #087e8b;
+    color: white;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+nav button {
+    background: white;
+    color: #173b65;
+}
+button:hover { opacity: .85; }
+main {
+    max-width: 1000px;
+    margin: 25px auto;
+    padding: 15px;
+}
+section {
+    background: white;
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px #0001;
+}
+.hidden { display: none; }
+input, select, textarea {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 7px 0 15px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+}
+.room {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+}
+.room h3 { color: #087e8b; }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+}
+td, th {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+th { background: #dcecff; }
+footer {
+    background: #173b65;
+    color: white;
+    text-align: center;
+    padding: 15px;
+}
+.hero {
+    text-align: center;
+    background: #dcecff;
+}
+@media(max-width:600px) {
+    main { padding: 10px; }
+    section { padding: 14px; }
+    table { font-size: 12px; }
+    td, th { padding: 6px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Grand Stay Hotel</h1>
+    <p>Your comfort, our priority</p>
+    <nav>
+        <button onclick="show('home')">Home</button>
+        <button onclick="show('search')">Search Rooms</button>
+        <button onclick="show('register')">Register</button>
+        <button onclick="show('login')">Login</button>
+        <button onclick="show('profile')">My Profile</button>
+        <button onclick="show('history')">My Bookings</button>
+        <button onclick="show('admin')">Admin</button>
+        <button onclick="show('info')">Hotel Information</button>
+    </nav>
+</header>
+
+<main>
+
+<section id="home" class="hero">
+    <h2>Welcome to Grand Stay Hotel</h2>
+    <p>Find comfortable rooms at affordable prices.</p>
+    <button onclick="show('search')">Book a Room</button>
+    <h3>Our Facilities</h3>
+    <p>Free Wi-Fi | Restaurant | Parking | 24-hour Reception</p>
+</section>
+
+<section id="register" class="hidden">
+    <h2>User Registration</h2>
+    <form onsubmit="registerUser(event)">
+        <label>Full Name</label>
+        <input id="regName" required>
+        <label>Email</label>
+        <input id="regEmail" type="email" required>
+        <label>Phone Number</label>
+        <input id="regPhone" type="tel" required>
+        <label>Password</label>
+        <input id="regPassword" type="password" minlength="6" required>
+        <button>Register</button>
+    </form>
+</section>
+
+<section id="login" class="hidden">
+    <h2>User Login</h2>
+    <form onsubmit="loginUser(event)">
+        <label>Email</label>
+        <input id="loginEmail" type="email" required>
+        <label>Password</label>
+        <input id="loginPassword" type="password" required>
+        <button>Login</button>
+    </form>
+    <p>Demo login uses the email and password registered in this browser.</p>
+</section>
+
+<section id="profile" class="hidden">
+    <h2>My Profile</h2>
+    <form onsubmit="updateProfile(event)">
+        <label>Full Name</label>
+        <input id="profileName" required>
+        <label>Email</label>
+        <input id="profileEmail" type="email" required>
+        <label>Phone</label>
+        <input id="profilePhone" required>
+        <button>Update Profile</button>
+    </form>
+    <button onclick="logout()">Logout</button>
+</section>
+
+<section id="search" class="hidden">
+    <h2>Search Hotel Rooms</h2>
+    <label>Destination</label>
+    <input id="destination" value="Chennai" placeholder="Enter destination">
+    <label>Check-in Date</label>
+    <input id="checkin" type="date" required>
+    <label>Check-out Date</label>
+    <input id="checkout" type="date" required>
+    <label>Number of Guests</label>
+    <input id="guests" type="number" min="1" max="8" value="1">
+    <button onclick="searchRooms()">Check Availability</button>
+    <div id="roomResults"></div>
+</section>
+
+<section id="booking" class="hidden">
+    <h2>Room Booking Form</h2>
+    <form onsubmit="confirmBooking(event)">
+        <p id="selectedRoom"></p>
+        <label>Guest Name</label>
+        <input id="guestName" required>
+        <label>Email</label>
+        <input id="guestEmail" type="email" required>
+        <label>Check-in</label>
+        <input id="bookIn" type="date" required>
+        <label>Check-out</label>
+        <input id="bookOut" type="date" required>
+        <label>Guests</label>
+        <input id="bookGuests" type="number" min="1" max="8" value="1" required>
+        <label>Payment Method (demo)</label>
+        <select id="payment">
+            <option>Pay at Hotel</option>
+            <option>Demo Online Payment</option>
+        </select>
+        <button type="submit">Confirm Booking</button>
+    </form>
+</section>
+
+<section id="history" class="hidden">
+    <h2>My Booking History</h2>
+    <div id="bookingHistory"></div>
+</section>
+
+<section id="admin" class="hidden">
+    <h2>Administrator Panel</h2>
+    <p>Demo administrator access. A real site must require secure admin authentication.</p>
+
+    <h3>Update Room Price and Quantity</h3>
+    <label>Room Type</label>
+    <select id="adminRoom">
+        <option value="Standard">Standard</option>
+        <option value="Deluxe">Deluxe</option>
+        <option value="Suite">Suite</option>
+        <option value="Family">Family</option>
+    </select>
+    <label>Price per Night (₹)</label>
+    <input id="adminPrice" type="number" min="1">
+    <label>Total Rooms</label>
+    <input id="adminQty" type="number" min="0">
+    <button onclick="updateRoom()">Update Room</button>
+
+    <h3>Current Room Inventory</h3>
+    <div id="roomInventory"></div>
+
+    <h3>Manage All Bookings</h3>
+    <div id="adminBookings"></div>
+
+    <h3>Update Hotel Information</h3>
+    <label>About / Contact / FAQ / Travel Guide / Privacy Policy</label>
+    <textarea id="hotelInfo" rows="5"></textarea>
+    <button onclick="saveInfo()">Save Information</button>
+</section>
+
+<section id="info" class="hidden">
+    <h2>Hotel Information</h2>
+    <div id="publicInfo"></div>
+    <h3>Customer Service Q&A</h3>
+    <p><b>Q: What time is check-in?</b><br>Check-in starts at 12:00 PM.</p>
+    <p><b>Q: Can I cancel a booking?</b><br>Demo bookings can be cancelled at least three days before check-in.</p>
+    <h3>Local Travel Guide</h3>
+    <p>Ask the hotel reception for local transport, nearby attractions, and travel guidance.</p>
+    <h3>Privacy Policy</h3>
+    <p>This demonstration stores sample details only in browser storage. Do not enter sensitive personal or payment information.</p>
+</section>
+
+</main>
+
+<footer>
+    <p>Grand Stay Hotel | Online Room Booking System</p>
+    <p>Contact: info@grandstay.example | Phone: 9000000000</p>
+</footer>
+
+<script>
+const defaultRooms = [
+    {type:"Standard", price:2000, qty:10, amenities:"Wi-Fi, TV"},
+    {type:"Deluxe", price:3500, qty:8, amenities:"Wi-Fi, TV, Breakfast"},
+    {type:"Suite", price:6000, qty:4, amenities:"Living Room, Wi-Fi"},
+    {type:"Family", price:4500, qty:6, amenities:"Family Space, Wi-Fi"}
+];
+
+let rooms = JSON.parse(localStorage.getItem("hotelRooms")) || defaultRooms;
+let bookings = JSON.parse(localStorage.getItem("hotelBookings")) || [];
+let users = JSON.parse(localStorage.getItem("hotelUsers")) || [];
+let currentUser = localStorage.getItem("hotelCurrentUser") || "";
+let selectedType = "";
+let selectedPrice = 0;
+
+const initialInfo =
+    "About Us: Welcome to Grand Stay Hotel.\n" +
+    "Contact: info@grandstay.example\n" +
+    "Customer Service: Contact reception for assistance.\n" +
+    "Travel Guide: Ask reception about nearby attractions.\n" +
+    "Privacy: Demo application; no real payments are processed.";
+
+let info = localStorage.getItem("hotelInfo") || initialInfo;
+
+function persist() {
+    localStorage.setItem("hotelRooms", JSON.stringify(rooms));
+    localStorage.setItem("hotelBookings", JSON.stringify(bookings));
+    localStorage.setItem("hotelUsers", JSON.stringify(users));
+}
+
+function show(id) {
+    document.querySelectorAll("main section").forEach(s =>
+        s.classList.add("hidden"));
+    document.getElementById(id).classList.remove("hidden");
+
+    if (id === "profile") loadProfile();
+    if (id === "history") renderHistory();
+    if (id === "admin") renderAdmin();
+    if (id === "info") renderInfo();
+    if (id === "search") setDateMinimums();
+}
+
+function setDateMinimums() {
+    const today = new Date();
+    const min = new Date(today.getTime() -
+        today.getTimezoneOffset() * 60000).toISOString().slice(0,10);
+    document.getElementById("checkin").min = min;
+    document.getElementById("checkout").min = min;
+    document.getElementById("checkin").onchange = () => {
+        document.getElementById("checkout").min =
+            document.getElementById("checkin").value;
+    };
+}
+
+function registerUser(e) {
+    e.preventDefault();
+    const email = document.getElementById("regEmail").value.trim().toLowerCase();
+
+    if (users.some(u => u.email === email)) {
+        alert("This email is already registered.");
+        return;
+    }
+
+    users.push({
+        name: document.getElementById("regName").value,
+        email,
+        phone: document.getElementById("regPhone").value,
+        password: document.getElementById("regPassword").value
+    });
+    persist();
+    alert("Registration successful. Please log in.");
+    show("login");
+}
+
+function loginUser(e) {
+    e.preventDefault();
+    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+    const password = document.getElementById("loginPassword").value;
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if (!user) {
+        alert("Invalid details. Register first or check your credentials.");
+        return;
+    }
+
+    currentUser = user.email;
+    localStorage.setItem("hotelCurrentUser", currentUser);
+    alert("Login successful!");
+    show("home");
+}
+
+function logout() {
+    currentUser = "";
+    localStorage.removeItem("hotelCurrentUser");
+    alert("Logged out.");
+    show("home");
+}
+
+function loadProfile() {
+    const user = users.find(u => u.email === currentUser);
+    if (!user) {
+        alert("Please log in first.");
+        show("login");
+        return;
+    }
+    document.getElementById("profileName").value = user.name;
+    document.getElementById("profileEmail").value = user.email;
+    document.getElementById("profilePhone").value = user.phone;
+}
+
+function updateProfile(e) {
+    e.preventDefault();
+    const user = users.find(u => u.email === currentUser);
+    if (!user) return alert("Please log in first.");
+
+    const newEmail = document.getElementById("profileEmail").value.trim().toLowerCase();
+    if (users.some(u => u.email === newEmail && u !== user)) {
+        return alert("That email is already in use.");
+    }
+
+    const oldEmail = user.email;
+    user.name = document.getElementById("profileName").value;
+    user.email = newEmail;
+    user.phone = document.getElementById("profilePhone").value;
+
+    bookings.forEach(b => {
+        if (b.email === oldEmail) b.email = newEmail;
+    });
+    currentUser = newEmail;
+    localStorage.setItem("hotelCurrentUser", currentUser);
+    persist();
+    alert("Profile updated.");
+}
+
+function searchRooms() {
+    const destination = document.getElementById("destination").value.trim();
+    const checkin = document.getElementById("checkin").value;
+    const checkout = document.getElementById("checkout").value;
+    const guests = Number(document.getElementById("guests").value);
+    const results = document.getElementById("roomResults");
+
+    if (!destination || !checkin || !checkout ||
+        checkin < new Date().toLocaleDateString("en-CA") ||
+        checkout <= checkin || guests < 1 || guests > 8) {
+        alert("Enter a destination, valid dates, and guest count.");
+        return;
+    }
+
+    results.innerHTML = "";
+    rooms.forEach(room => {
+        const occupied = bookings.filter(b =>
+            b.type === room.type && b.status === "Confirmed" &&
+            b.checkin < checkout && b.checkout > checkin
+        ).length;
+        const available = room.qty - occupied;
+
+        const div = document.createElement("div");
+        div.className = "room";
+        div.innerHTML = `
+            <h3>${room.type} Room</h3>
+            <p>Destination: ${destination}</p>
+            <p>₹${room.price} per night</p>
+            <p>Amenities: ${room.amenities}</p>
+            <p>Available rooms for selected dates: ${Math.max(0,available)}</p>`;
+        if (available > 0) {
+            const button = document.createElement("button");
+            button.textContent = "Book Now";
+            button.onclick = () => startBooking(room.type);
+            div.appendChild(button);
+        }
+        results.appendChild(div);
+    });
+
+    window.searchDates = {checkin, checkout, guests};
+}
+
+function startBooking(type) {
+    if (!currentUser) {
+        alert("Please register and log in before booking.");
+        show("login");
+        return;
+    }
+
+    selectedType = type;
+    const room = rooms.find(r => r.type === type);
+    selectedPrice = room.price;
+    document.getElementById("selectedRoom").textContent =
+        type + " Room — ₹" + selectedPrice + " per night";
+
+    const dates = window.searchDates;
+    document.getElementById("bookIn").value = dates.checkin;
+    document.getElementById("bookOut").value = dates.checkout;
+    document.getElementById("bookGuests").value = dates.guests;
+
+    const user = users.find(u => u.email === currentUser);
+    document.getElementById("guestName").value = user.name;
+    document.getElementById("guestEmail").value = user.email;
+    show("booking");
+}
+
+function confirmBooking(e) {
+    e.preventDefault();
+    if (!currentUser) return alert("Please log in first.");
+
+    const checkin = document.getElementById("bookIn").value;
+    const checkout = document.getElementById("bookOut").value;
+    const guests = Number(document.getElementById("bookGuests").value);
+    const room = rooms.find(r => r.type === selectedType);
+
+    if (!room || !checkin || checkout <= checkin ||
+        checkin < new Date().toLocaleDateString("en-CA") ||
+        guests < 1 || guests > 8) {
+        alert("Please enter valid booking dates and guest count.");
+        return;
+    }
+
+    const occupied = bookings.filter(b =>
+        b.type === selectedType && b.status === "Confirmed" &&
+        b.checkin < checkout && b.checkout > checkin
+    ).length;
+
+    if (occupied >= room.qty) {
+        alert("No rooms available for those dates.");
+        show("search");
+        return;
+    }
+
+    const nights = (new Date(checkout) - new Date(checkin)) / 86400000;
+    const booking = {
+        id: Date.now(),
+        email: currentUser,
+        guest: document.getElementById("guestName").value,
+        type: selectedType,
+        checkin, checkout, guests,
+        total: nights * room.price,
+        status: "Confirmed",
+        payment: document.getElementById("payment").value
+    };
+
+    bookings.push(booking);
+    persist();
+    alert("Booking confirmed! Total: ₹" + booking.total +
+          ". This is a demo; no payment or email was sent.");
+    show("history");
+}
+
+function canChange(b) {
+    const cutoff = new Date(b.checkin + "T00:00:00");
+    cutoff.setDate(cutoff.getDate() - 3);
+    return new Date() < cutoff;
+}
+
+function renderHistory() {
+    const list = document.getElementById("bookingHistory");
+    if (!currentUser) {
+        list.textContent = "Please log in to view your bookings.";
+        return;
+    }
+
+    const mine = bookings.filter(b => b.email === currentUser);
+    if (!mine.length) {
+        list.textContent = "No bookings found.";
+        return;
+    }
+
+    list.innerHTML = "";
+    mine.forEach(b => {
+        const div = document.createElement("div");
+        div.className = "room";
+        const heading = document.createElement("h3");
+        heading.textContent = b.type + " Room — Booking #" + b.id;
+        div.appendChild(heading);
+
+        const details = document.createElement("p");
+        details.textContent = b.checkin + " to " + b.checkout +
+            " | Guests: " + b.guests + " | Total: ₹" + b.total +
+            " | Status: " + b.status;
+        div.appendChild(details);
+
+        if (b.status === "Confirmed" && canChange(b)) {
+            const change = document.createElement("button");
+            change.textContent = "Change Dates";
+            change.onclick = () => changeBooking(b.id);
+            div.appendChild(change);
+
+            const cancel = document.createElement("button");
+            cancel.textContent = "Cancel Booking";
+            cancel.style.marginLeft = "8px";
+            cancel.onclick = () => cancelBooking(b.id);
+            div.appendChild(cancel);
+        } else if (b.status === "Confirmed") {
+            const note = document.createElement("p");
+            note.textContent = "Changes and cancellations close three days before arrival.";
+            div.appendChild(note);
+        }
+
+        list.appendChild(div);
+    });
+}
+
+function changeBooking(id) {
+    const b = bookings.find(x => x.id === id && x.email === currentUser);
+    if (!b || !canChange(b)) return alert("Change window has closed.");
+
+    const checkin = prompt("Enter new check-in date (YYYY-MM-DD):", b.checkin);
+    if (!checkin) return;
+    const checkout = prompt("Enter new check-out date (YYYY-MM-DD):", b.checkout);
+    if (!checkout) return;
+
+    if (checkin < new Date().toLocaleDateString("en-CA") || checkout <= checkin) {
+        alert("Invalid dates.");
+        return;
+    }
+
+    const room = rooms.find(r => r.type === b.type);
+    const occupied = bookings.filter(x =>
+        x.id !== b.id && x.type === b.type && x.status === "Confirmed" &&
+        x.checkin < checkout && x.checkout > checkin
+    ).length;
+
+    if (!room || occupied >= room.qty) {
+        alert("No rooms available for those dates.");
+        return;
+    }
+
+    b.checkin = checkin;
+    b.checkout = checkout;
+    b.total = ((new Date(checkout) - new Date(checkin)) / 86400000) * room.price;
+    persist();
+    renderHistory();
+    alert("Booking dates updated.");
+}
+
+function cancelBooking(id) {
+    const b = bookings.find(x => x.id === id && x.email === currentUser);
+    if (!b || !canChange(b)) return alert("Cancellation window has closed.");
+    if (confirm("Cancel this booking?")) {
+        b.status = "Cancelled";
+        persist();
+        renderHistory();
+        alert("Booking cancelled. No real payment refund is processed.");
+    }
+}
+
+function renderAdmin() {
+    document.getElementById("roomInventory").innerHTML =
+        "<table><tr><th>Type</th><th>Price</th><th>Quantity</th></tr>" +
+        rooms.map(r => `<tr><td>${r.type}</td><td>₹${r.price}</td><td>${r.qty}</td></tr>`).join("") +
+        "</table>";
+
+    document.getElementById("adminBookings").innerHTML = bookings.map(b =>
+        `<div class="room"><p>#${b.id} — ${b.guest} — ${b.type} — ${b.checkin} — ${b.status}</p>
+        <button onclick="adminCancel(${b.id})">Cancel</button>
+        <button onclick="adminChange(${b.id})">Change Dates</button></div>`
+    ).join("") || "No bookings yet.";
+
+    document.getElementById("hotelInfo").value = info;
+}
+
+function updateRoom() {
+    const type = document.getElementById("adminRoom").value;
+    const price = Number(document.getElementById("adminPrice").value);
+    const qty = Number(document.getElementById("adminQty").value);
+    if (!Number.isFinite(price) || price <= 0 ||
+        !Number.isInteger(qty) || qty < 0) {
+        alert("Enter a positive price and a non-negative whole room quantity.");
+        return;
+    }
+
+    const room = rooms.find(r => r.type === type);
+    room.price = price;
+    room.qty = qty;
+    persist();
+    renderAdmin();
+    alert("Room details updated.");
+}
+
+function adminCancel(id) {
+    const b = bookings.find(x => x.id === id);
+    if (b && confirm("Cancel this booking?")) {
+        b.status = "Cancelled";
+        persist();
+        renderAdmin();
+    }
+}
+
+function adminChange(id) {
+    const b = bookings.find(x => x.id === id);
+    if (!b) return;
+
+    const checkin = prompt("New check-in date (YYYY-MM-DD):", b.checkin);
+    if (!checkin) return;
+    const checkout = prompt("New check-out date (YYYY-MM-DD):", b.checkout);
+    if (!checkout) return;
+
+    if (checkin < new Date().toLocaleDateString("en-CA") || checkout <= checkin) {
+        alert("Invalid dates.");
+        return;
+    }
+
+    b.checkin = checkin;
+    b.checkout = checkout;
+    const room = rooms.find(r => r.type === b.type);
+    b.total = ((new Date(checkout) - new Date(checkin)) / 86400000) * room.price;
+    persist();
+    renderAdmin();
+}
+
+function saveInfo() {
+    info = document.getElementById("hotelInfo").value;
+    localStorage.setItem("hotelInfo", info);
+    renderInfo();
+    alert("Hotel information saved.");
+}
+
+function renderInfo() {
+    document.getElementById("publicInfo").textContent = info;
+}
+
+show("home");
+</script>
+</body>
+</html>
